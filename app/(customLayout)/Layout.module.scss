@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  height: 100vh;
+
+  .sidebar {
+    width: 30%;
+    background-color: #f0f0f0;
+  }
+
+  .content {
+    width: 70%;
+    padding: 20px;
+    background-color: white;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .content {
+    width: 100%;
+    padding: 10px;
+  }
+}

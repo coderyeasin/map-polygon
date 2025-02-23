@@ -1,0 +1,61 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: $font-family;
+  margin: 0;
+  padding: 0;
+  background-color: $light-bg;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  padding: 0.8rem 0.5rem;
+  border-radius: 0.5rem;
+  color: $text-color;
+  margin: 0.5rem 0.5rem;
+}
+
+.polygon-list {
+  text-align: center;
+  margin: 0.5rem 0;
+  p {
+    color: $red-color;
+  }
+  table {
+    width: 100%;
+    height: 50%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      border: 1px solid $border-color;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    th {
+      color: $light-bg;
+      background-color: $secondary-color;
+    }
+    .actions {
+      width: 10rem;
+    }
+    .actions button:first-child {
+      background-color: $green-color;
+    }
+    .actions button:last-child {
+      background-color: $red-color;
+    }
+  }
+}
