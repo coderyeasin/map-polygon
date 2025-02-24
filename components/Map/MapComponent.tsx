@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { TileLayer, MapContainer, FeatureGroup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -12,6 +13,12 @@ import {
   setSelectedPolygon,
 } from "@/store/polygonSlice";
 import { useEffect, useRef } from "react";
+import {
+  IPolygon,
+  LeafletEvent,
+  PolygonOptions,
+  PolygonState,
+} from "@/types/polygon.types";
 
 const EditControl = dynamic(
   () => import("react-leaflet-draw").then((mod) => mod.EditControl),
@@ -21,22 +28,23 @@ const EditControl = dynamic(
 export default function MapComponent() {
   const dispatch = useDispatch();
   const { polygons, selectedPolygonId } = useSelector(
-    (state: any) => state.polygons
+    (state: { polygons: PolygonState }) => state.polygons
   );
-  const featureGroupRef = useRef<any>(null);
+  const featureGroupRef = useRef<L.FeatureGroup | null>(null);
 
   // Handle polygon creation
-  const handlePolygonCreated = (e: any) => {
+  const handlePolygonCreated = (e: LeafletEvent) => {
     const layer = e.layer;
-    const coordinates = layer
-      .getLatLngs()[0]
-      .map((latlng: any) => [latlng.lat, latlng.lng]);
+
+    const coordinates = (layer.getLatLngs()[0] as L.LatLng[]).map(
+      (latlng: L.LatLng) => [latlng.lat, latlng.lng]
+    );
     const id = uuidv4();
 
     // Assign the ID
-    layer.options.id = id;
+    (layer.options as PolygonOptions).id = id;
 
-    // save polygon
+    // Save polygon
     dispatch(
       addPolygon({
         id,
@@ -47,36 +55,41 @@ export default function MapComponent() {
     );
   };
 
-  // polygon edit
-  const handlePolygonEdited = (e: any) => {
+  // Polygon edit
+  const handlePolygonEdited = (e: LeafletEvent) => {
     const layers = e.layers;
-    layers.eachLayer((layer: any) => {
-      const id = layer.options.id;
-      const coordinates = layer
-        .getLatLngs()[0]
-        .map((latlng: any) => [latlng.lat, latlng.lng]);
 
-      if (id) {
-        // update polygon
-        dispatch(updatePolygon({ id, coordinates }));
+    layers.eachLayer((layer: L.Layer) => {
+      if (layer instanceof L.Polygon) {
+        const id = (layer.options as PolygonOptions).id;
+        const coordinates = (layer.getLatLngs()[0] as L.LatLng[]).map(
+          (latlng: L.LatLng) => [latlng.lat, latlng.lng]
+        );
 
-        // editing mode for the edited polygon
-        if (featureGroupRef.current) {
-          const layersInGroup = featureGroupRef.current.getLayers();
-          layersInGroup.forEach((l: any) => {
-            if (l.options.id === id) {
-              l.editing.disable(); // Disable editing for the edited polygon
-            }
-          });
+        if (id) {
+          // Update polygon
+          dispatch(updatePolygon({ id, coordinates }));
+
+          // Editing mode for the edited polygon
+          if (featureGroupRef.current) {
+            const layersInGroup = featureGroupRef.current.getLayers();
+            layersInGroup.forEach((l: L.Layer) => {
+              if (l instanceof L.Polygon) {
+                if ((l.options as PolygonOptions).id === id) {
+                  (l as any).editing.disable();
+                }
+              }
+            });
+          }
+
+          // Clear polygon by selected ID
+          dispatch(setSelectedPolygon(null));
         }
-
-        // Clear polygon by selected  ID
-        dispatch(setSelectedPolygon(null));
       }
     });
   };
 
-  // Manage polygon layers dynamically
+  // Dynamically Manage polygon layers
   useEffect(() => {
     if (featureGroupRef.current) {
       const featureGroup = featureGroupRef.current;
@@ -85,15 +98,15 @@ export default function MapComponent() {
       featureGroup.clearLayers();
 
       // Add current polygons to the FeatureGroup
-      polygons.forEach((p: any) => {
-        // polygon instance
+      polygons.forEach((p: IPolygon) => {
+        // Polygon instance
         const polygon = L.polygon(p.coordinates, {
           fillColor: p.fillColor,
           color: p.borderColor,
-        });
+        } as PolygonOptions);
 
         // Assign ID
-        polygon.options.id = p.id;
+        (polygon.options as PolygonOptions).id = p.id;
 
         // Add event handlers
         polygon.on("click", () => dispatch(setSelectedPolygon(p.id)));
@@ -108,11 +121,13 @@ export default function MapComponent() {
   useEffect(() => {
     if (featureGroupRef.current && selectedPolygonId) {
       const layers = featureGroupRef.current.getLayers();
-      layers.forEach((layer: any) => {
-        if (layer.options.id === selectedPolygonId) {
-          layer.editing.enable();
-        } else {
-          layer.editing.disable();
+      layers.forEach((layer: L.Layer) => {
+        if (layer instanceof L.Polygon) {
+          if ((layer.options as PolygonOptions).id === selectedPolygonId) {
+            (layer as any).editing.enable();
+          } else {
+            (layer as any).editing.disable();
+          }
         }
       });
     }
