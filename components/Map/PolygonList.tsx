@@ -7,9 +7,8 @@ const PolygonList = () => {
   const polygons = useSelector((state: RootState) => state.polygons.polygons);
   const dispatch = useDispatch();
 
-  // Function to export polygons as GeoJSON
+  // Export polygons as JSON
   const handleExportGeoJSON = () => {
-    // Create a GeoJSON FeatureCollection
     const geoJSON = {
       type: "FeatureCollection",
       features: polygons.map((p) => ({
@@ -21,7 +20,7 @@ const PolygonList = () => {
         },
         geometry: {
           type: "Polygon",
-          coordinates: [p.coordinates], // Wrap coordinates in an array for GeoJSON format
+          coordinates: [p.coordinates],
         },
       })),
     };
@@ -32,15 +31,15 @@ const PolygonList = () => {
     // Create a Blob with the GeoJSON data
     const blob = new Blob([jsonString], { type: "application/json" });
 
-    // Create a download link
+    // Download link
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "saved_polygons.geojson"; // File name
+    a.download = "saved_polygons.geojson";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url); // Clean up the URL object
+    URL.revokeObjectURL(url);
   };
 
   return (

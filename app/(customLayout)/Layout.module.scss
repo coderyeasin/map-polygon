@@ -1,30 +1,46 @@
+@use "../../styles/variables" as *;
+@use "../../styles/mixins.scss" as *;
+
 .container {
   display: flex;
   height: 100vh;
 
+  @include responsive("xs") {
+    flex-direction: column;
+  }
+  @include responsive("sm") {
+    flex-direction: column;
+  }
+  @include responsive("md") {
+    flex-direction: column;
+  }
   .sidebar {
     width: 30%;
-    background-color: #f0f0f0;
+    background-color: $light-bg;
+    @include responsive("xs") {
+      @include SideSize();
+    }
+    @include responsive("sm") {
+      @include SideSize();
+    }
+    @include responsive("md") {
+      @include SideSize();
+    }
   }
 
   .content {
     width: 70%;
     padding: 20px;
-    background-color: white;
-  }
-}
+    background-color: $light-bg;
 
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-  }
-
-  .content {
-    width: 100%;
-    padding: 10px;
+    @include responsive("xs") {
+      @include fullSize();
+    }
+    @include responsive("sm") {
+      @include fullSize();
+    }
+    @include responsive("md") {
+      @include fullSize();
+    }
   }
 }
