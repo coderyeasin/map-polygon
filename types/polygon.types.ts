@@ -1,21 +1,14 @@
-export interface Polygon {
+export interface IPolygon {
   id: string;
-  coordinates: number[][];
+  coordinates: [number, number][];
   fillColor: string;
   borderColor: string;
 }
 
 export interface RootState {
   polygons: {
-    polygons: Polygon[];
+    polygons: IPolygon[];
   };
-}
-
-export interface IPolygon {
-  id: string;
-  coordinates: [number, number][];
-  fillColor: string;
-  borderColor: string;
 }
 
 export interface PolygonState {

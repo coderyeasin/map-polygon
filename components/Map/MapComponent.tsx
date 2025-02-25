@@ -6,19 +6,12 @@ import "leaflet-draw/dist/leaflet.draw.css";
 import L from "leaflet";
 import dynamic from "next/dynamic";
 import { useDispatch, useSelector } from "react-redux";
-import { v4 as uuidv4 } from "uuid";
-import {
-  addPolygon,
-  updatePolygon,
-  setSelectedPolygon,
-} from "@/store/polygonSlice";
+
+import { setSelectedPolygon } from "@/store/polygonSlice";
 import { useEffect, useRef } from "react";
-import {
-  IPolygon,
-  LeafletEvent,
-  PolygonOptions,
-  PolygonState,
-} from "@/types/polygon.types";
+import { IPolygon, PolygonOptions, PolygonState } from "@/types/polygon.types";
+import { handlePolygonCreated } from "@/utils/mapCreateFunc";
+import { handlePolygonEdited } from "@/utils/mapEditFunc";
 
 const EditControl = dynamic(
   () => import("react-leaflet-draw").then((mod) => mod.EditControl),
@@ -31,63 +24,6 @@ export default function MapComponent() {
     (state: { polygons: PolygonState }) => state.polygons
   );
   const featureGroupRef = useRef<L.FeatureGroup | null>(null);
-
-  // Handle polygon creation
-  const handlePolygonCreated = (e: LeafletEvent) => {
-    const layer = e.layer;
-
-    const coordinates = (layer.getLatLngs()[0] as L.LatLng[]).map(
-      (latlng: L.LatLng) => [latlng.lat, latlng.lng]
-    );
-    const id = uuidv4();
-
-    // Assign the ID
-    (layer.options as PolygonOptions).id = id;
-
-    // Save polygon
-    dispatch(
-      addPolygon({
-        id,
-        coordinates,
-        fillColor: "#FF5733",
-        borderColor: "#000000",
-      })
-    );
-  };
-
-  // Polygon edit
-  const handlePolygonEdited = (e: LeafletEvent) => {
-    const layers = e.layers;
-
-    layers.eachLayer((layer: L.Layer) => {
-      if (layer instanceof L.Polygon) {
-        const id = (layer.options as PolygonOptions).id;
-        const coordinates = (layer.getLatLngs()[0] as L.LatLng[]).map(
-          (latlng: L.LatLng) => [latlng.lat, latlng.lng]
-        );
-
-        if (id) {
-          // Update polygon
-          dispatch(updatePolygon({ id, coordinates }));
-
-          // Editing mode for the edited polygon
-          if (featureGroupRef.current) {
-            const layersInGroup = featureGroupRef.current.getLayers();
-            layersInGroup.forEach((l: L.Layer) => {
-              if (l instanceof L.Polygon) {
-                if ((l.options as PolygonOptions).id === id) {
-                  (l as any).editing.disable();
-                }
-              }
-            });
-          }
-
-          // Clear polygon by selected ID
-          dispatch(setSelectedPolygon(null));
-        }
-      }
-    });
-  };
 
   // Dynamically Manage polygon layers
   useEffect(() => {
@@ -148,8 +84,8 @@ export default function MapComponent() {
       <FeatureGroup ref={featureGroupRef}>
         <EditControl
           position="topright"
-          onCreated={handlePolygonCreated}
-          onEdited={handlePolygonEdited}
+          onCreated={(e) => handlePolygonCreated(e, dispatch)}
+          onEdited={(e) => handlePolygonEdited(e, dispatch)}
           draw={{
             rectangle: false,
             polygon: true,

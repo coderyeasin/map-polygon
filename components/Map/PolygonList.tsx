@@ -2,45 +2,11 @@
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../types/polygon.types";
 import { deletePolygon, setSelectedPolygon } from "../../store/polygonSlice";
+import { handleExportGeoJSON } from "@/utils/createJsonFunc";
 
 const PolygonList = () => {
   const polygons = useSelector((state: RootState) => state.polygons.polygons);
   const dispatch = useDispatch();
-
-  // Export polygons as JSON
-  const handleExportGeoJSON = () => {
-    const geoJSON = {
-      type: "FeatureCollection",
-      features: polygons.map((p) => ({
-        type: "Feature",
-        properties: {
-          id: p.id,
-          fillColor: p.fillColor,
-          borderColor: p.borderColor,
-        },
-        geometry: {
-          type: "Polygon",
-          coordinates: [p.coordinates],
-        },
-      })),
-    };
-
-    // Convert GeoJSON to a JSON string
-    const jsonString = JSON.stringify(geoJSON, null, 2);
-
-    // Create a Blob with the GeoJSON data
-    const blob = new Blob([jsonString], { type: "application/json" });
-
-    // Download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "saved_polygons.geojson";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="polygon-list">
@@ -74,10 +40,7 @@ const PolygonList = () => {
               ))}
             </tbody>
           </table>
-          <button
-            onClick={handleExportGeoJSON}
-            style={{ marginBottom: "10px" }}
-          >
+          <button onClick={() => handleExportGeoJSON(polygons)}>
             Export GeoJSON
           </button>
         </>

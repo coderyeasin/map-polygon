@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Polygon } from "../types/polygon.types";
+import { IPolygon } from "../types/polygon.types";
 
-const initialState: { polygons: Polygon[]; selectedPolygonId: string | null } =
+const initialState: { polygons: IPolygon[]; selectedPolygonId: string | null } =
   {
     polygons: [],
     selectedPolygonId: null,
