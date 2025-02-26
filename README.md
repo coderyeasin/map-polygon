@@ -1,6 +1,6 @@
 ## [Polygon Map ](https://polygon-map.vercel.app/)
 
-At First Clone this [Repository](https://github.com/coderyeasin/bookish.git) and then open this project in `VS Code` then install existing packages with using below command line.
+At First Clone this [Repository](https://github.com/coderyeasin/bookish.git) and then open this project in `VS Code` then install existing packages using below command line.
 
 ```bash
 
