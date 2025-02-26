@@ -1,10 +1,13 @@
 import { LeafletEvent, PolygonOptions } from "@/types/polygon.types";
-import L from "leaflet";
 import { updatePolygon, setSelectedPolygon } from "@/store/polygonSlice";
 import { AppDispatch } from "@/store/store";
 
-// Handle polygon editing
-export const handlePolygonEdited = (e: LeafletEvent, dispatch: AppDispatch) => {
+// polygon editing
+export const handlePolygonEdited = async (
+  e: LeafletEvent,
+  dispatch: AppDispatch
+) => {
+  const L = (await import("leaflet")).default;
   const layers = e.layers;
 
   layers.eachLayer((layer: L.Layer) => {
@@ -15,15 +18,10 @@ export const handlePolygonEdited = (e: LeafletEvent, dispatch: AppDispatch) => {
       );
 
       if (id) {
-        // Update polygon
         dispatch(updatePolygon({ id, coordinates }));
-
-        // Editing mode for the edited polygon
         if (layer.editing) {
           layer.editing.disable();
         }
-
-        // Clear polygon by selected ID
         dispatch(setSelectedPolygon(null));
       }
     }

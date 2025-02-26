@@ -1,22 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { TileLayer, MapContainer, FeatureGroup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
-import L from "leaflet";
-import dynamic from "next/dynamic";
 import { useDispatch, useSelector } from "react-redux";
-
 import { setSelectedPolygon } from "@/store/polygonSlice";
 import { useEffect, useRef } from "react";
 import { IPolygon, PolygonOptions, PolygonState } from "@/types/polygon.types";
 import { handlePolygonCreated } from "@/utils/mapCreateFunc";
 import { handlePolygonEdited } from "@/utils/mapEditFunc";
-
-const EditControl = dynamic(
-  () => import("react-leaflet-draw").then((mod) => mod.EditControl),
-  { ssr: false }
-);
+import {
+  EditControl,
+  FeatureGroup,
+  MapContainer,
+  TileLayer,
+} from "./leafletFeature";
 
 export default function MapComponent() {
   const dispatch = useDispatch();
@@ -25,46 +22,41 @@ export default function MapComponent() {
   );
   const featureGroupRef = useRef<L.FeatureGroup | null>(null);
 
-  // Dynamically Manage polygon layers
+  // Manage polygon layers
   useEffect(() => {
-    if (featureGroupRef.current) {
-      const featureGroup = featureGroupRef.current;
-
-      // Remove all existing layers
-      featureGroup.clearLayers();
-
-      // Add current polygons to the FeatureGroup
-      polygons.forEach((p: IPolygon) => {
-        // Polygon instance
-        const polygon = L.polygon(p.coordinates, {
-          fillColor: p.fillColor,
-          color: p.borderColor,
-        } as PolygonOptions);
-
-        // Assign ID
-        (polygon.options as PolygonOptions).id = p.id;
-
-        // Add event handlers
-        polygon.on("click", () => dispatch(setSelectedPolygon(p.id)));
-
-        // Add polygon to FeatureGroup
-        featureGroup.addLayer(polygon);
+    if (!featureGroupRef.current) return;
+    const featureGroup = featureGroupRef.current;
+    featureGroup.clearLayers();
+    if (typeof window !== "undefined") {
+      import("leaflet").then((L) => {
+        polygons.forEach((p: IPolygon) => {
+          const polygon = L.polygon(p.coordinates, {
+            fillColor: p.fillColor,
+            color: p.borderColor,
+          } as PolygonOptions);
+          (polygon.options as PolygonOptions).id = p.id;
+          polygon.on("click", () => dispatch(setSelectedPolygon(p.id)));
+          featureGroup.addLayer(polygon);
+        });
       });
     }
   }, [polygons, dispatch]);
 
-  // Enable editing for selected polygon
+  // selected polygon editing
   useEffect(() => {
-    if (featureGroupRef.current && selectedPolygonId) {
-      const layers = featureGroupRef.current.getLayers();
-      layers.forEach((layer: L.Layer) => {
-        if (layer instanceof L.Polygon) {
-          if ((layer.options as PolygonOptions).id === selectedPolygonId) {
-            (layer as any).editing.enable();
-          } else {
-            (layer as any).editing.disable();
+    if (!featureGroupRef.current || !selectedPolygonId) return;
+    const layers = featureGroupRef.current.getLayers();
+    if (typeof window !== "undefined") {
+      import("leaflet").then((L) => {
+        layers.forEach((layer: any) => {
+          if (layer instanceof L.Polygon) {
+            if ((layer.options as PolygonOptions).id === selectedPolygonId) {
+              (layer as any).editing.enable();
+            } else {
+              (layer as any).editing.disable();
+            }
           }
-        }
+        });
       });
     }
   }, [selectedPolygonId, polygons]);
@@ -80,7 +72,6 @@ export default function MapComponent() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-
       <FeatureGroup ref={featureGroupRef}>
         <EditControl
           position="topright"
